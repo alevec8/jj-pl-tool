@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>J&amp;J &times; QLS &mdash; Client P&amp;L Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb-bg:#1B2E1F; --sb-w:242px; --top-h:64px;
+  --pink:#E8336D; --pink-lt:#fce7ef;
+  --qls-blue:#4A90D9; --qls-navy:#0D2137;
+  --body:#F2F3F0; --card:#fff; --border:#E4E7E0;
+  --t1:#1A1F18; --t2:#6B7266; --t3:#9EA89A;
+  --green:#16a34a; --green-lt:#f0fdf4;
+  --amber:#d97706; --amber-lt:#fffbeb;
+  --red:#dc2626; --red-lt:#fef2f2;
+  --blue:#2E86C1;
+  --r:12px; --r-sm:7px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+}
+html,body{height:100%;background:var(--body);color:var(--t1);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;line-height:1.5;overflow:hidden}
+#shell{display:flex;height:100vh}
+
+/* SIDEBAR */
+#sb{width:var(--sb-w);flex-shrink:0;background:var(--sb-bg);display:flex;flex-direction:column;overflow:hidden}
+.sb-logo{padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-brands{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sb-jj{background:#fff;border-radius:7px;padding:4px 8px;font-weight:900;font-size:13px;font-style:italic;color:var(--sb-bg);letter-spacing:-.5px;line-height:1;flex-shrink:0}
+.sb-x{color:rgba(255,255,255,.3);font-size:11px;font-weight:600}
+.sb-qls{display:flex;align-items:center;gap:5px}
+.sb-qls-icon{width:22px;height:22px;position:relative;flex-shrink:0}
+.sb-qls-icon svg{width:22px;height:22px}
+.sb-qls-text{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.sb-tagline{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.04em}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;padding:12px 16px 3px}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;position:relative;transition:all .13s;font-family:'Plus Jakarta Sans',sans-serif}
+.sb-btn:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.sb-btn.on{background:rgba(255,255,255,.09);color:#fff;font-weight:600}
+.sb-btn.on::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--pink);border-radius:0 2px 2px 0}
+.sb-ic{width:16px;text-align:center;font-size:13px;opacity:.7;flex-shrink:0}
+.sb-btn.on .sb-ic{opacity:1}
+.sb-chip{margin-left:auto;background:var(--pink);color:#fff;font-size:10px;font-weight:700;border-radius:20px;padding:1px 7px}
+.sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-foot-tag{font-size:9px;color:var(--pink);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.sb-foot p{font-size:11px;color:rgba(255,255,255,.25);line-height:1.5}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0}
+
+/* TOPBAR */
+#top{height:var(--top-h);flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:14px}
+.top-info{flex:1;min-width:0}
+.top-title{font-size:20px;font-weight:800;color:var(--pink);letter-spacing:-.4px;line-height:1;white-space:nowrap}
+.top-sub{font-size:11px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-drops{display:flex;gap:8px;flex-shrink:0}
+.drop{display:flex;flex-direction:column;min-width:160px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:5px 10px;background:#fff;position:relative;cursor:pointer;transition:border-color .13s}
+.drop:hover{border-color:#bbb}
+.drop em{font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;font-style:normal}
+.drop select{border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:var(--t1);background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:14px;width:100%}
+.drop::after{content:'v';position:absolute;right:9px;bottom:7px;font-size:10px;color:var(--t3);pointer-events:none;font-weight:700}
+.top-meta{display:flex;align-items:center;gap:8px;margin-left:4px;padding-left:14px;border-left:1px solid var(--border);flex-shrink:0}
+.meta-date{text-align:right}
+.meta-date b{display:block;font-size:12px;font-weight:700;color:var(--t1)}
+.meta-date small{font-size:11px;color:var(--t3)}
+.top-logos{display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--body);border-radius:var(--r-sm);border:1px solid var(--border)}
+.tl-jj{font-weight:900;font-size:12px;font-style:italic;color:var(--sb-bg)}
+.tl-div{width:1px;height:16px;background:var(--border)}
+.tl-qls{display:flex;align-items:center;gap:3px}
+.tl-qls svg{width:14px;height:14px}
+.tl-qls span{font-size:11px;font-weight:800;color:var(--qls-navy);letter-spacing:-.3px}
+
+/* CONTENT */
+#ct{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;min-height:0}
+#ct::-webkit-scrollbar{width:5px}
+#ct::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* BANNER */
+.banner{background:var(--sb-bg);border-radius:var(--r);padding:18px 22px;display:flex;align-items:center;gap:16px;color:#fff}
+.banner-ic{width:46px;height:46px;border-radius:10px;background:rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.banner-txt{flex:1}
+.banner-txt h2{font-size:18px;font-weight:800;color:var(--pink);margin-bottom:2px;letter-spacing:-.3px}
+.banner-txt p{font-size:12px;color:rgba(255,255,255,.5)}
+.banner-txt p strong{color:rgba(255,255,255,.85)}
+.banner-btn{background:#fff;color:var(--sb-bg);border:none;cursor:pointer;border-radius:var(--r-sm);padding:8px 16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;white-space:nowrap;transition:all .13s;flex-shrink:0}
+.banner-btn:hover{background:var(--pink);color:#fff}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:visible}
+.cp{padding:18px 20px}
+.ch{display:flex;align-items:flex-start;gap:11px;margin-bottom:14px}
+.ci{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ci.g{background:#f0faf2}.ci.p{background:var(--pink-lt)}.ci.b{background:#eff6ff}.ci.a{background:#fffbeb}
+.ct{font-size:14px;font-weight:700;color:var(--t1);line-height:1.3}
+.cs{font-size:11px;color:var(--t3);margin-top:1px}
+
+/* KPI */
+.kpi{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);padding:15px 17px}
+.kpi-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kpi-val{font-size:1.95rem;font-weight:800;letter-spacing:-.03em;color:var(--t1);line-height:1;font-family:'DM Mono',monospace}
+.kpi-meta{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* PROGRESS */
+.pg-item{margin-bottom:12px}.pg-item:last-child{margin-bottom:0}
+.pg-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.pg-hdr span:first-child{font-size:13px;font-weight:500;color:var(--t1)}
+.pg-hdr span:last-child{font-size:12px;font-family:'DM Mono',monospace;color:var(--t2)}
+.pg-bg{background:#e9ede8;border-radius:20px;height:6px;overflow:hidden}
+.pg-fill{height:100%;border-radius:20px;transition:width .4s ease}
+.f-blue{background:#3B82F6}.f-pink{background:var(--pink)}.f-amber{background:var(--amber)}
+.f-green{background:#22C55E}
+
+/* STAT ROW */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none;padding-bottom:0}
+.sr-lbl{font-size:13px;color:var(--t2)}
+.sr-val strong{display:block;font-size:14px;font-weight:700;font-family:'DM Mono',monospace;text-align:right}
+.sr-val small{font-size:10px;color:var(--t3);text-align:right;display:block}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:0 0 var(--r) var(--r)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 12px;background:#f5f7f4;color:var(--t3);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-bottom:2px solid var(--border);white-space:nowrap;text-align:right}
+th:first-child{text-align:left}
+td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--t2)}
+td:first-child{text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;color:var(--t1)}
+tbody tr:hover td{background:#fafafa}
+.tr-sec td{background:#f4f6f2!important;font-family:'Plus Jakarta Sans',sans-serif!important;font-size:10px!important;font-weight:700!important;color:var(--t3)!important;text-transform:uppercase!important;letter-spacing:.07em!important;padding:6px 12px!important}
+.tr-sub td{background:#f0f4ee!important;font-weight:700!important;color:#1B4F8A!important}
+.tr-sub td:first-child{padding-left:16px!important}
+.tr-tot td{background:var(--sb-bg)!important;color:#fff!important;font-weight:700!important;border:none!important;padding:11px 12px!important;font-family:'DM Mono',monospace!important}
+.tr-tot td:first-child{font-family:'Plus Jakarta Sans',sans-serif!important}
+
+/* BADGE */
+.bdg{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
+.bg{background:var(--green-lt);color:var(--green)}
+.ba{background:var(--amber-lt);color:var(--amber)}
+.br{background:var(--red-lt);color:var(--red)}
+
+/* CALLOUT */
+.callout{background:#f0faf2;border:1px solid #c3e6cb;border-radius:var(--r-sm);padding:10px 13px;display:flex;gap:9px;align-items:flex-start;margin-top:12px}
+.callout.amber{background:var(--amber-lt);border-color:#fcd34d}
+.callout-ic{font-size:13px;flex-shrink:0;margin-top:1px}
+.callout p{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* FORM - KEY FIX: use onchange not oninput so typing isn't interrupted */
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;padding:14px 20px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase}
+.fld input{padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;font-weight:600;outline:none;transition:border-color .13s;width:100%}
+.fld input[type=text]{font-family:'Plus Jakarta Sans',sans-serif}
+.fld input:focus{border-color:var(--pink)}
+.fdiv{padding:14px 20px 4px;font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:2px}
+.fdiv::after{content:'';flex:1;height:1px;background:var(--border)}
+.fdiv:first-of-type{border-top:none;margin-top:0}
+
+/* SHIPPING PAGE */
+.ship-country{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:visible}
+.ship-country-hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.ship-flag{font-size:20px;flex-shrink:0}
+.ship-country-name{font-size:14px;font-weight:700;color:var(--t1)}
+.ship-country-sub{font-size:11px;color:var(--t3)}
+.ship-options{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:none}
+.ship-opt{padding:14px 18px;border-right:1px solid var(--border)}
+.ship-opt:last-child{border-right:none}
+.ship-opt-name{font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.ship-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ship-row label{font-size:11px;color:var(--t3);font-weight:500}
+.ship-inp{width:80px;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--t1);text-align:right;background:#fff;outline:none;transition:border-color .13s}
+.ship-inp:focus{border-color:var(--pink)}
+.ship-inp.name-inp{width:100%;margin-bottom:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;text-align:left}
+.ship-margin{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border);margin-top:4px}
+.ship-margin label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+/* TIERS */
+.tier-builder{padding:0}
+.tier-hdr-row{display:grid;grid-template-columns:150px 1fr 1fr 1fr 1fr 1fr 90px;gap:0;background:#f5f7f4;border-bottom:2px solid var(--border)}
+.tier-hdr-row div{padding:8px 12px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;text-align:right}
+.tier-hdr-row div:first-child{text-align:left}
+.tier-row-item{display:grid;grid-template-columns:150px 1fr 1fr 1fr 1fr 1fr 90px;gap:0;border-bottom:1px solid var(--border);align-items:center}
+.tier-row-item:last-child{border-bottom:none}
+.tier-row-item.cur-tier{background:#fff9f0}
+.tier-cell{padding:10px 12px;text-align:right}
+.tier-cell:first-child{text-align:left}
+.tier-inp{width:90px;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--t1);text-align:right;background:#fff;outline:none;transition:border-color .13s}
+.tier-inp:focus{border-color:var(--pink)}
+.tier-inp.band-inp{width:130px;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px}
+.tier-calc{font-size:12px;font-family:'DM Mono',monospace;font-weight:700}
+.add-tier-btn{margin:12px 20px;padding:8px 16px;border:1.5px dashed var(--border);border-radius:var(--r-sm);background:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--t3);transition:all .13s;display:flex;align-items:center;gap:6px;width:calc(100% - 40px)}
+.add-tier-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-lt)}
+.del-tier-btn{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:4px;border-radius:4px;transition:all .13s;line-height:1}
+.del-tier-btn:hover{color:var(--red);background:var(--red-lt)}
+
+/* SCENARIO */
+.sc2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sc-card{border-radius:var(--r);border:1.5px solid var(--border);padding:16px 18px;background:#fff}
+.sc-card.cur{border-top:4px solid #1B4F8A}
+.sc-card.sc{border-top:4px solid var(--pink)}
+.sc-card h4{font-size:13px;font-weight:700;margin-bottom:12px}
+.sc-card h4.b{color:#1B4F8A}.sc-card h4.p{color:var(--pink)}
+.sc-kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sc-k{background:var(--body);border-radius:var(--r-sm);padding:10px}
+.sc-k label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);display:block;margin-bottom:3px}
+.sc-k strong{font-size:16px;font-weight:800;font-family:'DM Mono',monospace;color:var(--t1)}
+
+/* OPM BAR */
+.opm-bar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.opm-bar label{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.opm-inp{padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--t1);width:120px;outline:none;transition:border-color .13s}
+.opm-inp:focus{border-color:var(--pink)}
+.rst-btn{padding:7px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--t3);transition:all .13s}
+.rst-btn:hover{background:var(--body)}
+.opm-note{font-size:12px;color:var(--t3)}
+.opm-note strong{color:var(--t1)}
+
+/* FORECAST INPUTS */
+.fc-inp{width:64px;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#1B4F8A;text-align:right;background:#fff;outline:none}
+.fc-inp:focus{border-color:var(--pink)}
+
+/* INSIGHTS */
+.ins-list{padding:16px 20px;display:flex;flex-direction:column;gap:9px}
+.ins{background:var(--body);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border)}
+.ins.amber{background:var(--amber-lt);border-color:#fde68a}
+.ins strong{display:block;font-size:13px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.ins p{font-size:12px;color:var(--t2);line-height:1.5}
+
+@media(max-width:680px){#sb{display:none}.g4{grid-template-columns:1fr 1fr}.g2,.sc2{grid-template-columns:1fr}.ship-options{grid-template-columns:1fr}.tier-hdr-row,.tier-row-item{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="shell">
+
+<!-- SIDEBAR -->
+<nav id="sb">
+  <div class="sb-logo">
+    <div class="sb-brands">
+      <div class="sb-jj">J&amp;J</div>
+      <div class="sb-x">&times;</div>
+      <div class="sb-qls">
+        <div class="sb-qls-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="28" height="28" rx="4" fill="#4A90D9" opacity=".9"/>
+            <rect x="9" y="9" width="14" height="14" rx="2" fill="white"/>
+            <rect x="14" y="14" width="10" height="10" rx="1.5" fill="#4A90D9" opacity=".8"/>
+            <rect x="18" y="18" width="6" height="6" rx="1" fill="#0D2137"/>
+          </svg>
+        </div>
+        <div class="sb-qls-text">QLS</div>
+      </div>
+    </div>
+    <div class="sb-tagline">Global Fulfilment &middot; P&L Platform</div>
+  </div>
+  <div class="sb-nav">
+    <button class="sb-btn on" data-tab="summary" onclick="go('summary')"><span class="sb-ic">&#x1F4CA;</span>P&amp;L Summary</button>
+    <button class="sb-btn" data-tab="inputs" onclick="go('inputs')"><span class="sb-ic">&#x2699;&#xFE0F;</span>Inputs</button>
+    <div class="sb-sec">Analysis</div>
+    <button class="sb-btn" data-tab="shipping" onclick="go('shipping')"><span class="sb-ic">&#x1F69A;</span>Shipping Rates</button>
+    <button class="sb-btn" data-tab="ratecard" onclick="go('ratecard')"><span class="sb-ic">&#x1F4B7;</span>Rate Card</button>
+    <button class="sb-btn" data-tab="forecast" onclick="go('forecast')"><span class="sb-ic">&#x1F4C5;</span>Forecast <span class="sb-chip">2026</span></button>
+    <button class="sb-btn" data-tab="tiers" onclick="go('tiers')"><span class="sb-ic">&#x1F4C8;</span>Tiered Pricing</button>
+    <button class="sb-btn" data-tab="scenario" onclick="go('scenario')"><span class="sb-ic">&#x1F500;</span>Scenario Compare</button>
+  </div>
+  <div class="sb-foot">
+    <div class="sb-foot-tag">&#x2726; J&amp;J &times; QLS</div>
+    <p>Formula-driven P&L tool for ecommerce fulfilment clients. All inputs recalculate live.</p>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="top">
+    <div class="top-info">
+      <div class="top-title" id="ttl">P&amp;L Summary</div>
+      <div class="top-sub" id="tsub">Live margin model &mdash; change any input to recalculate everything</div>
+    </div>
+    <div class="top-drops">
+      <div class="drop">
+        <em>Brand</em>
+        <select><option>J&amp;J Global Fulfilment</option></select>
+      </div>
+      <div class="drop">
+        <em>Client</em>
+        <select id="sel-client"><option value="">[No client set]</option></select>
+      </div>
+    </div>
+    <div class="top-meta">
+      <div class="top-logos">
+        <span class="tl-jj">J&amp;J</span>
+        <div class="tl-div"></div>
+        <div class="tl-qls">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="28" height="28" rx="4" fill="#4A90D9"/>
+            <rect x="9" y="9" width="14" height="14" rx="2" fill="white"/>
+            <rect x="14" y="14" width="10" height="10" rx="1.5" fill="#4A90D9" opacity=".75"/>
+            <rect x="18" y="18" width="6" height="6" rx="1" fill="#0D2137"/>
+          </svg>
+          <span>QLS</span>
+        </div>
+      </div>
+      <div class="meta-date">
+        <b id="udate">April 2026</b>
+        <small>report period</small>
+      </div>
+    </div>
+  </div>
+  <div id="ct"></div>
+</div>
+</div>
+
+<script>
+// STATE
+var S = {
+  clientName:"", period:"April 2026", labourRate:22.69,
+  opm:6600, upo:2.7, returnsRate:0.01, ukMix:0.982, euMix:0.012, rowMix:0.006,
+  goodsinRate:1.00, goodsinCost:0.93, pick1Rate:1.10, pick2Rate:0.25,
+  custpackFee:0.45, custpackSecs:20, ret1Rate:2.34,
+  subRev:150, subCost:75, emailRate:0.04, storPalRate:5.29, storM3Rate:1.13,
+  bookBph:75, pickBph:153, packBph:48, labelBph:800, retBph:13,
+  ibPallets:7, ibCpp:50, ibUpc:148, stPallets:33, stCpp:20, stUpc:50,
+  dimL:22.9, dimW:33.3, dimH:3.2,
+  forecast:[10080,10080,11160,14280,15840,16800,15840,15840,17640,21720,24240,21360],
+  scOpm:null,
+  // Shipping: 3 regions, 3 options each
+  shipping:{
+    uk:[
+      {name:"RM Tracked 48",  cost:2.17, rev:2.33},
+      {name:"RM Tracked 24",  cost:3.09, rev:3.80},
+      {name:"Express Signed", cost:4.20, rev:5.50}
+    ],
+    eu:[
+      {name:"Standard EU",   cost:4.41, rev:6.06},
+      {name:"Express EU",    cost:6.80, rev:9.50},
+      {name:"Economy EU",    cost:3.20, rev:4.80}
+    ],
+    usa:[
+      {name:"USPS First Class",cost:8.43,rev:11.80},
+      {name:"UPS Ground",      cost:11.20,rev:15.50},
+      {name:"FedEx Express",   cost:16.40,rev:22.00}
+    ]
+  },
+  // Tiers: fully editable array
+  tiers:[
+    {band:"0 - 4,999",     p1:1.10, p2:0.25, t48:2.33, t24:3.80, notes:"Entry"},
+    {band:"5,000 - 10,999",p1:1.04, p2:0.20, t48:2.27, t24:3.72, notes:"Growth"},
+    {band:"11,000 - 14,999",p1:1.02,p2:0.20, t48:2.25, t24:3.70, notes:"Scale"},
+    {band:"15,000 - 19,999",p1:1.00,p2:0.18, t48:2.23, t24:3.68, notes:"Premium"},
+    {band:"20,000+",       p1:0.97, p2:0.17, t48:2.21, t24:3.66, notes:"Enterprise"}
+  ]
+};
+
+// CALC ENGINE
+function calcPL(s) {
+  var lab=s.labourRate, opm=s.opm, upo=s.upo;
+  var giRev=s.ibPallets*s.ibCpp*s.goodsinRate, giCost=s.ibPallets*s.ibCpp*s.goodsinCost;
+  var spRev=s.stPallets*s.storPalRate*2, spCost=s.stPallets*s.storPalRate;
+  var m3pu=(s.dimL/100)*(s.dimW/100)*(s.dimH/100);
+  var m3T=s.stPallets*s.stCpp*s.stUpc*m3pu;
+  var smRev=(m3T/30)*s.storM3Rate*2*30, smCost=(m3T/30)*s.storM3Rate*30;
+  var ppRev=opm*(s.pick1Rate*upo+s.pick2Rate*Math.max(upo-1,0));
+  var ppCost=opm*upo*(lab/s.pickBph)+opm*(lab/s.packBph)+opm*(lab/s.labelBph);
+  var cpRev=opm*s.custpackFee, cpCost=opm*(s.custpackSecs/3600)*lab;
+  var rtRev=opm*s.returnsRate*s.ret1Rate, rtCost=opm*s.returnsRate*(lab/s.retBph);
+  // Use dominant shipping rate (T48/UK blend) for baseline - pull from shipping table
+  var ukOpt = s.shipping.uk[0];
+  var euOpt = s.shipping.eu[0];
+  var usaOpt= s.shipping.usa[0];
+  var lines=[
+    {label:"Goods-In",         cat:"ops",     rev:giRev, cost:giCost},
+    {label:"Storage - Pallets",cat:"ops",     rev:spRev, cost:spCost},
+    {label:"Storage - M3",     cat:"ops",     rev:smRev, cost:smCost},
+    {label:"Pick & Pack",      cat:"ops",     rev:ppRev, cost:ppCost},
+    {label:"Custom Packaging", cat:"ops",     rev:cpRev, cost:cpCost},
+    {label:"Returns",          cat:"ops",     rev:rtRev, cost:rtCost},
+    {label:"Shipping - UK",    cat:"shipping",rev:opm*s.ukMix*ukOpt.rev,  cost:opm*s.ukMix*ukOpt.cost},
+    {label:"Shipping - EU",    cat:"shipping",rev:opm*s.euMix*euOpt.rev,  cost:opm*s.euMix*euOpt.cost},
+    {label:"Shipping - USA",   cat:"shipping",rev:opm*s.rowMix*usaOpt.rev,cost:opm*s.rowMix*usaOpt.cost},
+    {label:"Subscription",     cat:"other",   rev:s.subRev, cost:s.subCost},
+    {label:"Customer Emails",  cat:"other",   rev:opm*s.emailRate, cost:0}
+  ];
+  var tRev=0,tCost=0;
+  for(var i=0;i<lines.length;i++){tRev+=lines[i].rev;tCost+=lines[i].cost;}
+  var tP=tRev-tCost, mg=tRev>0?tP/tRev:0;
+  return{lines:lines,totalRev:tRev,totalCost:tCost,totalProfit:tP,margin:mg,
+    revPO:opm>0?tRev/opm:0,costPO:opm>0?tCost/opm:0,profitPO:opm>0?tP/opm:0};
+}
+
+// FORMAT
+function GBP(v,dp){dp=dp||0;return"\u00A3"+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp});}
+function PCT(v){return(v*100).toFixed(1)+"%";}
+function NUM(v){return Math.round(v).toLocaleString("en-GB");}
+function mc(m){return m>=0.25?"g":m>=0.08?"a":"r";}
+function bdg(m){return'<span class="bdg b'+mc(m)+'">'+PCT(m)+"</span>";}
+function mcolor(m){return m>=0.25?"var(--green)":m>=0.08?"var(--amber)":"var(--red)";}
+
+var MOS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// NAV
+var TAB="summary";
+var PAGE={
+  summary: {title:"P&L Summary",       sub:"Live margin model \u2014 change any input to recalculate everything"},
+  inputs:  {title:"Inputs",             sub:"Edit fields to model any client \u2014 updates apply on leaving each field"},
+  shipping:{title:"Shipping Rates",     sub:"UK, EU and USA rates \u2014 3 options per region, all editable"},
+  ratecard:{title:"Rate Card",          sub:"Per-order economics and service line margin breakdown"},
+  forecast:{title:"Order Forecast",     sub:"Monthly order projection \u2014 edit volumes inline"},
+  tiers:   {title:"Tiered Pricing",     sub:"Fully customisable volume tiers \u2014 edit, add or remove any tier"},
+  scenario:{title:"Scenario Compare",   sub:"What-if analysis \u2014 model any order volume change"}
+};
+
+function go(t){
+  TAB=t;
+  document.querySelectorAll(".sb-btn").forEach(function(el){el.classList.toggle("on",el.dataset.tab===t);});
+  document.getElementById("ttl").textContent=PAGE[t].title;
+  document.getElementById("tsub").textContent=PAGE[t].sub;
+  render();
+}
+
+// KEY FIX: update state on blur/change only, not on every keystroke
+function setKey(key, val, isNum) {
+  S[key] = isNum ? (parseFloat(val)||0) : val;
+  renderHeader();
+  if (TAB==="summary") renderTab();
+  else if (TAB==="ratecard") renderTab();
+  else if (TAB==="scenario") renderTab();
+  else if (TAB==="forecast") renderTab();
+}
+
+function renderHeader() {
+  document.getElementById("udate").textContent = S.period||"April 2026";
+  var sel = document.getElementById("sel-client");
+  if (S.clientName) {
+    var exists=false;
+    for(var i=0;i<sel.options.length;i++) if(sel.options[i].value===S.clientName) exists=true;
+    if(!exists){var o=document.createElement("option");o.value=S.clientName;o.text=S.clientName;sel.appendChild(o);}
+    sel.value=S.clientName;
+  }
+}
+
+function renderTab() {
+  var pl=calcPL(S);
+  var ct=document.getElementById("ct");
+  if     (TAB==="summary")  ct.innerHTML=renderSummary(pl);
+  else if(TAB==="inputs")   ct.innerHTML=renderInputs();
+  else if(TAB==="shipping") ct.innerHTML=renderShipping();
+  else if(TAB==="ratecard") ct.innerHTML=renderRateCard(pl);
+  else if(TAB==="forecast") ct.innerHTML=renderForecast(pl);
+  else if(TAB==="tiers")    ct.innerHTML=renderTiers();
+  else if(TAB==="scenario") ct.innerHTML=renderScenario(pl);
+  bindAll();
+}
+
+function render(){renderHeader();renderTab();}
+
+// SUMMARY
+function renderSummary(pl) {
+  var rows="";
+  [{k:"ops",l:"Operations"},{k:"shipping",l:"Shipping"},{k:"other",l:"Other"}].forEach(function(cat){
+    rows+='<tr class="tr-sec"><td colspan="7">'+cat.l+'</td></tr>';
+    var cr=0,cc=0;
+    pl.lines.filter(function(l){return l.cat===cat.k;}).forEach(function(l){
+      var pr=l.rev-l.cost,mg=l.rev>0?pr/l.rev:0;cr+=l.rev;cc+=l.cost;
+      rows+='<tr><td style="padding-left:18px">'+l.label+'</td>'
+        +'<td style="color:var(--blue);font-weight:600">'+GBP(l.rev,2)+'</td>'
+        +'<td>'+GBP(l.cost,2)+'</td>'
+        +'<td style="font-weight:700;color:'+(pr>=0?"var(--green)":"var(--red)")+'">'+GBP(pr,2)+'</td>'
+        +'<td>'+bdg(mg)+'</td>'
+        +'<td style="color:var(--t3)">'+(pl.totalRev>0?PCT(l.rev/pl.totalRev):"&mdash;")+'</td>'
+        +'<td style="color:var(--t3)">'+GBP(l.rev*12)+'</td></tr>';
+    });
+    var cp=cr-cc,cm=cr>0?cp/cr:0;
+    rows+='<tr class="tr-sub"><td style="padding-left:18px">Subtotal &mdash; '+cat.l+'</td>'
+      +'<td style="color:var(--blue)">'+GBP(cr,2)+'</td><td>'+GBP(cc,2)+'</td>'
+      +'<td style="color:'+(cp>=0?"var(--green)":"var(--red)")+'">'+GBP(cp,2)+'</td>'
+      +'<td>'+bdg(cm)+'</td><td></td><td></td></tr>';
+  });
+  var ops={r:0,c:0},ship={r:0,c:0},oth={r:0,c:0};
+  pl.lines.forEach(function(l){
+    if(l.cat==="ops"){ops.r+=l.rev;ops.c+=l.cost;}
+    else if(l.cat==="shipping"){ship.r+=l.rev;ship.c+=l.cost;}
+    else{oth.r+=l.rev;oth.c+=l.cost;}
+  });
+  function pg(lbl,val,tot,cls){
+    var p=tot>0?(val/tot*100).toFixed(1):0;
+    return'<div class="pg-item"><div class="pg-hdr"><span>'+lbl+'</span><span>'+GBP(val,0)+(tot>0?' <span style="color:var(--t3);font-size:10px">'+PCT(val/tot)+'</span>':'')+'</span></div><div class="pg-bg"><div class="pg-fill '+cls+'" style="width:'+p+'%"></div></div></div>';
+  }
+  function pgm(lbl,mg,cls){
+    return'<div class="pg-item"><div class="pg-hdr"><span>'+lbl+'</span><span>'+PCT(mg)+'</span></div><div class="pg-bg"><div class="pg-fill '+cls+'" style="width:'+(mg*100).toFixed(1)+'%"></div></div></div>';
+  }
+  return'<div class="banner">'
+    +'<div class="banner-ic">&#x1F4E6;</div>'
+    +'<div class="banner-txt"><h2>'+NUM(S.opm)+' orders / month &nbsp;&middot;&nbsp; '+GBP(pl.totalRev)+' monthly revenue</h2>'
+    +'<p>Margin <strong>'+PCT(pl.margin)+'</strong> &nbsp;&middot;&nbsp; Profit/order <strong>'+GBP(pl.profitPO,3)+'</strong> &nbsp;&middot;&nbsp; Annual projection <strong>'+GBP(pl.totalRev*12)+'</strong></p></div>'
+    +'<button class="banner-btn" onclick="go(\'scenario\')">Model a scenario &#x2192;</button></div>'
+    +'<div class="g4">'
+    +'<div class="kpi"><div class="kpi-lbl">Monthly Revenue</div><div class="kpi-val" style="color:var(--pink)">'+GBP(pl.totalRev)+'</div><div class="kpi-meta">'+GBP(pl.totalRev*12)+' annually</div></div>'
+    +'<div class="kpi"><div class="kpi-lbl">Monthly Profit</div><div class="kpi-val" style="color:var(--green)">'+GBP(pl.totalProfit)+'</div><div class="kpi-meta">'+GBP(pl.totalProfit*12)+' annually</div></div>'
+    +'<div class="kpi"><div class="kpi-lbl">Overall Margin</div><div class="kpi-val" style="color:'+mcolor(pl.margin)+'">'+PCT(pl.margin)+'</div><div class="kpi-meta">Cost/order: '+GBP(pl.costPO,3)+'</div></div>'
+    +'<div class="kpi"><div class="kpi-lbl">Revenue / Order</div><div class="kpi-val">'+GBP(pl.revPO,3)+'</div><div class="kpi-meta">Profit: '+GBP(pl.profitPO,3)+'/order</div></div>'
+    +'</div>'
+    +'<div class="card"><div class="cp">'
+    +'<div class="ch"><div class="ci g">&#x1F4CB;</div><div><div class="ct">Monthly P&amp;L Breakdown</div><div class="cs">'+(S.clientName||"[No client set]")+'&nbsp;&middot;&nbsp;'+S.period+'&nbsp;&middot;&nbsp;'+NUM(S.opm)+' OPM</div></div></div>'
+    +'<div class="tw"><table><thead><tr><th style="text-align:left">Service</th><th>Revenue</th><th>Cost</th><th>Gross Profit</th><th>Margin</th><th>% of Rev</th><th>Annual</th></tr></thead>'
+    +'<tbody>'+rows
+    +'<tr class="tr-tot"><td>TOTAL MONTHLY</td><td>'+GBP(pl.totalRev,2)+'</td><td>'+GBP(pl.totalCost,2)+'</td><td>'+GBP(pl.totalProfit,2)+'</td>'
+    +'<td><span style="background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">'+PCT(pl.margin)+'</span></td>'
+    +'<td>100%</td><td>'+GBP(pl.totalRev*12)+'</td></tr>'
+    +'</tbody></table></div></div></div>'
+    +'<div class="g2">'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci b">&#x1F3F7;&#xFE0F;</div><div><div class="ct">Revenue by Category</div><div class="cs">Share of total monthly revenue</div></div></div>'
+    +pg("Operations",ops.r,pl.totalRev,"f-blue")+pg("Shipping",ship.r,pl.totalRev,"f-pink")+pg("Other",oth.r,pl.totalRev,"f-amber")+'</div></div>'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci a">&#x1F4D0;</div><div><div class="ct">Margin by Category</div><div class="cs">Gross margin per service area</div></div></div>'
+    +pgm("Operations",ops.r>0?(ops.r-ops.c)/ops.r:0,"f-blue")+pgm("Shipping",ship.r>0?(ship.r-ship.c)/ship.r:0,"f-pink")+pgm("Other",oth.r>0?(oth.r-oth.c)/oth.r:0,"f-amber")
+    +'<div class="callout"><div class="callout-ic">&#x1F4A1;</div><p>Shipping margin is thin (~7&ndash;9%) &mdash; near pass-through. Profitability is driven by operational efficiency.</p></div>'
+    +'</div></div></div>';
+}
+
+// SHIPPING RATES
+function renderShipping() {
+  var countries=[
+    {key:"uk", flag:"&#x1F1EC;&#x1F1E7;", name:"United Kingdom", sub:"Domestic UK fulfilment"},
+    {key:"eu", flag:"&#x1F1EA;&#x1F1FA;", name:"European Union",  sub:"Cross-border EU shipping"},
+    {key:"usa",flag:"&#x1F1FA;&#x1F1F8;", name:"United States",   sub:"Transatlantic / ROW"}
+  ];
+  var out='';
+  countries.forEach(function(c){
+    var opts=S.shipping[c.key];
+    var totalMix=c.key==="uk"?S.ukMix:c.key==="eu"?S.euMix:S.rowMix;
+    out+='<div class="ship-country">'
+      +'<div class="ship-country-hdr"><div class="ship-flag">'+c.flag+'</div>'
+      +'<div><div class="ship-country-name">'+c.name+'</div><div class="ship-country-sub">'+c.sub+' &nbsp;&middot;&nbsp; <strong>'+PCT(totalMix)+'</strong> of order volume</div></div>'
+      +'</div>'
+      +'<div class="ship-options">';
+    opts.forEach(function(opt,idx){
+      var mg=opt.rev>0?(opt.rev-opt.cost)/opt.rev:0;
+      out+='<div class="ship-opt">'
+        +'<div class="ship-opt-name">Option '+(idx+1)+'</div>'
+        +'<input class="ship-inp name-inp" type="text" data-ship="'+c.key+'" data-idx="'+idx+'" data-field="name" value="'+opt.name+'" placeholder="Service name"/>'
+        +'<div class="ship-row"><label>Our Cost &pound;</label>'
+        +'<input class="ship-inp" type="number" data-ship="'+c.key+'" data-idx="'+idx+'" data-field="cost" value="'+opt.cost+'" step="0.01" min="0"/></div>'
+        +'<div class="ship-row"><label>Client Rate &pound;</label>'
+        +'<input class="ship-inp" type="number" data-ship="'+c.key+'" data-idx="'+idx+'" data-field="rev" value="'+opt.rev+'" step="0.01" min="0"/></div>'
+        +'<div class="ship-margin"><label>Margin</label>'
+        +'<span class="bdg b'+mc(mg)+'" id="ship-mg-'+c.key+'-'+idx+'">'+PCT(mg)+'</span>'
+        +'</div></div>';
+    });
+    out+='</div></div>';
+  });
+  out+='<div class="callout amber" style="margin:0"><div class="callout-ic">&#x1F4CC;</div>'
+    +'<p>The first option for each region is used as the primary rate in P&L and Rate Card calculations. Update shipping mix % in the Inputs tab.</p></div>';
+  return out;
+}
+
+// RATE CARD
+function renderRateCard(pl) {
+  var rows="";
+  pl.lines.forEach(function(l){
+    var rpo=S.opm>0?l.rev/S.opm:0,cpo=S.opm>0?l.cost/S.opm:0,pr=rpo-cpo,mg=rpo>0?pr/rpo:0;
+    rows+='<tr><td>'+l.label+'</td>'
+      +'<td style="color:var(--blue);font-weight:600">'+GBP(rpo,3)+'</td>'
+      +'<td>'+GBP(cpo,3)+'</td>'
+      +'<td style="font-weight:700;color:'+(pr>=0?"var(--green)":"var(--red)")+'">'+GBP(pr,3)+'</td>'
+      +'<td>'+bdg(mg)+'</td></tr>';
+  });
+  rows+='<tr class="tr-tot"><td>TOTAL PER ORDER</td><td>'+GBP(pl.revPO,3)+'</td><td>'+GBP(pl.costPO,3)+'</td><td>'+GBP(pl.profitPO,3)+'</td>'
+    +'<td><span style="background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">'+PCT(pl.margin)+'</span></td></tr>';
+  var shipRows="";
+  ["uk","eu","usa"].forEach(function(r){
+    S.shipping[r].forEach(function(opt){
+      var mg=opt.rev>0?(opt.rev-opt.cost)/opt.rev:0;
+      shipRows+='<tr><td>'+opt.name+'</td><td>'+GBP(opt.cost,2)+'</td>'
+        +'<td style="color:var(--blue);font-weight:600">'+GBP(opt.rev,2)+'</td>'
+        +'<td style="color:var(--green);font-weight:700">'+GBP(opt.rev-opt.cost,2)+'</td>'
+        +'<td>'+bdg(mg)+'</td>'
+        +'<td style="font-family:\'Plus Jakarta Sans\',sans-serif;color:var(--t3)">'+(r==="uk"?"UK":r==="eu"?"EU":"USA")+'</td></tr>';
+    });
+  });
+  var labRows=["Picking","Packing","Labelling","Returns"].map(function(l,i){
+    var r=[S.pickBph,S.packBph,S.labelBph,S.retBph][i];
+    var u=["units/hr","orders/hr","orders/hr","orders/hr"][i];
+    return'<div class="sr"><div class="sr-lbl">'+l+' <span style="color:var(--t3);font-size:11px">('+NUM(r)+' '+u+')</span></div>'
+      +'<div class="sr-val"><strong style="color:var(--green)">'+GBP(S.labourRate/r,3)+'</strong><small>per unit</small></div></div>';
+  }).join("");
+  return'<div class="g2">'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci g">&#x1F9EE;</div><div><div class="ct">Per-Order Economics</div><div class="cs">'+NUM(S.opm)+' OPM &middot; &pound;'+S.labourRate.toFixed(2)+'/hr</div></div></div>'
+    +'<div class="tw"><table><thead><tr><th style="text-align:left">Service</th><th>Rev/Order</th><th>Cost/Order</th><th>Profit/Order</th><th>Margin</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci p">&#x1F69A;</div><div><div class="ct">Shipping Rate Summary</div><div class="cs">All options across UK, EU and USA</div></div></div>'
+    +'<div class="tw"><table><thead><tr><th style="text-align:left">Service</th><th>Our Cost</th><th>Client Rate</th><th>Margin</th><th>%</th><th style="text-align:left">Region</th></tr></thead><tbody>'+shipRows+'</tbody></table></div></div></div>'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci b">&#x23F1;&#xFE0F;</div><div><div class="ct">Labour Cost / Unit</div><div class="cs">&pound;'+S.labourRate.toFixed(2)+'/hr</div></div></div>'+labRows+'</div></div>'
+    +'</div></div>';
+}
+
+// FORECAST
+function renderForecast(pl) {
+  var revPO=S.opm>0?pl.totalRev/S.opm:0, proPO=S.opm>0?pl.totalProfit/S.opm:0;
+  var rows=MOS.map(function(m,i){return{month:m,orders:S.forecast[i],rev:S.forecast[i]*revPO,profit:S.forecast[i]*proPO};});
+  var totO=0,totR=0,totP=0;
+  rows.forEach(function(r){totO+=r.orders;totR+=r.rev;totP+=r.profit;});
+  var mh=rows.map(function(r){return'<th>'+r.month+'</th>';}).join("");
+  var inps=rows.map(function(r,i){return'<td style="padding:4px"><input class="fc-inp" data-fc="'+i+'" value="'+r.orders+'" type="number" min="0" step="100"/></td>';}).join("");
+  var revC=rows.map(function(r){return'<td style="color:var(--blue);font-weight:600">'+GBP(r.rev)+'</td>';}).join("");
+  var proC=rows.map(function(r){return'<td style="color:var(--green);font-weight:600">'+GBP(r.profit)+'</td>';}).join("");
+  var mgC=rows.map(function(r){return'<td>'+(r.rev>0?bdg(r.profit/r.rev):"&mdash;")+'</td>';}).join("");
+  var cum=0,cumC=rows.map(function(r){cum+=r.rev;return'<td style="color:var(--t3);font-size:11px">'+GBP(cum)+'</td>';}).join("");
+  return'<div class="card">'
+    +'<div class="cp"><div class="ch"><div class="ci g">&#x1F4C5;</div><div><div class="ct">2026 Order Forecast &amp; Revenue Projection</div><div class="cs">Edit order volumes inline &mdash; revenue and profit update live</div></div></div></div>'
+    +'<div style="overflow-x:auto"><table style="min-width:980px">'
+    +'<thead><tr><th style="text-align:left;padding-left:20px">Metric</th>'+mh+'<th style="background:var(--sb-bg);color:#fff">Total</th></tr></thead>'
+    +'<tbody>'
+    +'<tr><td style="font-weight:700;padding-left:20px">Forecast Orders</td>'+inps+'<td style="font-weight:700;padding-right:14px">'+NUM(totO)+'</td></tr>'
+    +'<tr><td style="font-weight:700;color:var(--blue);padding-left:20px">Revenue</td>'+revC+'<td style="font-weight:700;color:var(--blue);padding-right:14px">'+GBP(totR)+'</td></tr>'
+    +'<tr style="background:var(--green-lt)"><td style="font-weight:700;color:var(--green);padding-left:20px">Profit</td>'+proC+'<td style="font-weight:700;color:var(--green);padding-right:14px">'+GBP(totP)+'</td></tr>'
+    +'<tr><td style="font-weight:700;color:var(--t3);padding-left:20px">Margin %</td>'+mgC+'<td style="padding-right:14px">'+(totR>0?bdg(totP/totR):"&mdash;")+'</td></tr>'
+    +'<tr style="background:#fafafa"><td style="font-weight:700;color:var(--t3);padding-left:20px">Cumulative</td>'+cumC+'<td style="font-weight:700;padding-right:14px">'+GBP(totR)+'</td></tr>'
+    +'</tbody></table></div>'
+    +'<div class="cp" style="padding-top:0"><div class="callout amber"><div class="callout-ic">&#x1F4CC;</div><p>Uses current rate card from Inputs. Change OPM, rates or shipping mix and all projections update automatically.</p></div></div></div>';
+}
+
+// TIERS - fully editable
+function renderTiers() {
+  var hdr='<div class="tier-builder"><div class="tier-hdr-row">'
+    +'<div>Volume Band</div><div>1st Pick &pound;</div><div>2nd Pick &pound;</div>'
+    +'<div>T48 &pound;</div><div>T24 &pound;</div><div>Est. Margin</div><div></div></div>';
+  var tierRows="";
+  S.tiers.forEach(function(t,i){
+    var ts=calcPL(Object.assign({},S,{opm:5000*(i+1),pick1Rate:t.p1,pick2Rate:t.p2}));
+    var isCur=false;
+    if(i===0&&S.opm<5000) isCur=true;
+    else if(i===S.tiers.length-1&&S.opm>=5000*i) isCur=true;
+    else if(S.opm>=5000*i&&S.opm<5000*(i+1)) isCur=true;
+    tierRows+='<div class="tier-row-item'+(isCur?" cur-tier":"") +'">'
+      +'<div class="tier-cell"><input class="tier-inp band-inp" type="text" data-tier="'+i+'" data-tf="band" value="'+t.band+'"/>'+(isCur?'<span style="font-size:9px;color:var(--pink);font-weight:700;display:block;margin-top:2px">&#x25C4; CURRENT</span>':'')+'</div>'
+      +'<div class="tier-cell"><input class="tier-inp" type="number" data-tier="'+i+'" data-tf="p1" value="'+t.p1+'" step="0.01" min="0"/></div>'
+      +'<div class="tier-cell"><input class="tier-inp" type="number" data-tier="'+i+'" data-tf="p2" value="'+t.p2+'" step="0.01" min="0"/></div>'
+      +'<div class="tier-cell"><input class="tier-inp" type="number" data-tier="'+i+'" data-tf="t48" value="'+t.t48+'" step="0.01" min="0"/></div>'
+      +'<div class="tier-cell"><input class="tier-inp" type="number" data-tier="'+i+'" data-tf="t24" value="'+t.t24+'" step="0.01" min="0"/></div>'
+      +'<div class="tier-cell"><span class="tier-calc" style="color:'+mcolor(ts.margin)+'">'+PCT(ts.margin)+'</span></div>'
+      +'<div class="tier-cell" style="text-align:center"><button class="del-tier-btn" onclick="delTier('+i+')" title="Remove tier">&#x2715;</button></div>'
+      +'</div>';
+  });
+  var insights=[
+    [false,"Shipping margin is thin (~7\u20139%)","Near pass-through. Overall profitability is driven by ops efficiency and throughput rates."],
+    [true, "Pick & Pack is the core margin driver","Reports labour efficiency improvements to clients as a tangible, measurable value metric."],
+    [false,"Custom packaging = ~72% margin","Highest-margin service. Always include in proposals where the client has custom packaging needs."],
+    [true, "Volume unlocks revenue without proportional overhead","Scaling from 6,600 \u2192 10,000+ OPM adds revenue with largely fixed storage and overhead costs."]
+  ].map(function(ins){return'<div class="ins'+(ins[0]?" amber":"")+'"><strong>'+ins[1]+'</strong><p>'+ins[2]+'</p></div>';}).join("");
+  return'<div class="card">'+hdr+tierRows
+    +'<button class="add-tier-btn" onclick="addTier()">+ Add tier</button>'
+    +'</div>'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci b">&#x1F4A1;</div><div><div class="ct">Strategic Insights</div></div></div></div>'
+    +'<div class="ins-list">'+insights+'</div></div>';
+}
+
+// SCENARIO
+function renderScenario(pl) {
+  var scOpm=S.scOpm||S.opm, scPL=calcPL(Object.assign({},S,{opm:scOpm}));
+  var rows="";
+  for(var i=0;i<pl.lines.length;i++){
+    var l=pl.lines[i],sc=scPL.lines[i],d=sc.rev-l.rev;
+    var cm=l.rev>0?(l.rev-l.cost)/l.rev:0,sm=sc.rev>0?(sc.rev-sc.cost)/sc.rev:0;
+    rows+='<tr><td>'+l.label+'</td>'
+      +'<td>'+GBP(l.rev,2)+'</td>'
+      +'<td style="color:var(--blue);font-weight:600">'+GBP(sc.rev,2)+'</td>'
+      +'<td style="font-weight:700;color:'+(d>=0?"var(--green)":"var(--red)")+'">'+(d>=0?"+":"")+GBP(d,2)+'</td>'
+      +'<td>'+bdg(cm)+'</td><td>'+bdg(sm)+'</td></tr>';
+  }
+  var td=scPL.totalRev-pl.totalRev;
+  rows+='<tr class="tr-tot"><td>TOTAL</td><td>'+GBP(pl.totalRev,2)+'</td><td>'+GBP(scPL.totalRev,2)+'</td>'
+    +'<td style="color:'+(td>=0?"#5DCAA5":"#F09595")+'">'+(td>=0?"+":"")+GBP(td,2)+'</td>'
+    +'<td><span style="background:rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px">'+PCT(pl.margin)+'</span></td>'
+    +'<td><span style="background:rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px">'+PCT(scPL.margin)+'</span></td></tr>';
+  function scK(lbl,val,color){return'<div class="sc-k"><label>'+lbl+'</label><strong style="color:'+(color||"var(--t1)")+'">'+val+'</strong></div>';}
+  return'<div class="card">'
+    +'<div class="cp"><div class="ch"><div class="ci p">&#x1F500;</div><div><div class="ct">What-If Volume Analysis</div></div></div></div>'
+    +'<div class="opm-bar"><label>Scenario OPM</label>'
+    +'<input class="opm-inp" type="number" id="sc-in" value="'+scOpm+'" step="100" min="0"/>'
+    +'<button class="rst-btn" onclick="S.scOpm=null;render()">Reset</button>'
+    +'<span class="opm-note">Current: <strong>'+NUM(S.opm)+'</strong> &nbsp;&middot;&nbsp; Scenario: <strong>'+NUM(scOpm)+'</strong></span></div></div>'
+    +'<div class="sc2">'
+    +'<div class="sc-card cur"><h4 class="b">Current &mdash; '+NUM(S.opm)+' OPM</h4><div class="sc-kpis">'
+    +scK("Monthly Revenue",GBP(pl.totalRev))+scK("Monthly Profit",GBP(pl.totalProfit),"var(--green)")
+    +scK("Margin %",PCT(pl.margin),mcolor(pl.margin))+scK("Rev / Order",GBP(pl.revPO,3))
+    +'</div></div>'
+    +'<div class="sc-card sc"><h4 class="p">Scenario &mdash; '+NUM(scOpm)+' OPM</h4><div class="sc-kpis">'
+    +scK("Monthly Revenue",GBP(scPL.totalRev))+scK("Monthly Profit",GBP(scPL.totalProfit),"var(--green)")
+    +scK("Margin %",PCT(scPL.margin),mcolor(scPL.margin))+scK("Rev / Order",GBP(scPL.revPO,3))
+    +'</div></div></div>'
+    +'<div class="card"><div class="cp"><div class="ch"><div class="ci a">&#x1F4CA;</div><div><div class="ct">Line-by-Line Impact</div></div></div>'
+    +'<div class="tw"><table><thead><tr><th style="text-align:left">Service</th><th>Current</th><th>Scenario</th><th>Change</th><th>Cur %</th><th>Sc %</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div></div></div>';
+}
+
+// INPUTS - KEY FIX: onblur fires once after user finishes typing
+function renderInputs() {
+  function F(lbl,key,step,type){
+    step=step||"0.01";type=type||"number";
+    var isNum=type!=="text";
+    return'<div class="fld"><label>'+lbl+'</label>'
+      +'<input type="'+(isNum?"number":"text")+'" id="inp-'+key+'" value="'+S[key]+'" step="'+step+'"'
+      +' onblur="setKey(\''+key+'\',this.value,'+(isNum?'true':'false')+')" '
+      +' onkeydown="if(event.key===\'Enter\')this.blur()"/></div>';
+  }
+  return'<div class="card">'
+    +'<div class="cp" style="padding-bottom:4px"><div class="ch"><div class="ci g">&#x2699;&#xFE0F;</div>'
+    +'<div><div class="ct">Master Inputs</div><div class="cs">Edit any field &mdash; press Enter or click away to apply. All views recalculate automatically.</div></div></div></div>'
+    +'<div class="fdiv">Client &amp; Account</div><div class="fg">'
+    +F("Client Name","clientName","","text")+F("Report Period","period","","text")
+    +F("Labour Rate &pound;/hr","labourRate","0.01")+'</div>'
+    +'<div class="fdiv">Volume Assumptions</div><div class="fg">'
+    +F("Orders Per Month","opm","100")+F("Avg Units / Order","upo","0.1")
+    +F("Returns Rate (0.01=1%)","returnsRate","0.001")
+    +F("UK Shipping Mix","ukMix","0.001")+F("EU Shipping Mix","euMix","0.001")+F("USA Shipping Mix","rowMix","0.001")+'</div>'
+    +'<div class="fdiv">Operations Rate Card</div><div class="fg">'
+    +F("Goods-In Rate &pound;/box","goodsinRate")+F("Goods-In Cost &pound;/box","goodsinCost")
+    +F("1st Pick &pound;/unit","pick1Rate")+F("2nd Pick &pound;/unit","pick2Rate")
+    +F("Custom Pack Fee &pound;/order","custpackFee")+F("Custom Pack Time (secs)","custpackSecs","1")
+    +F("Returns &pound;/return","ret1Rate")
+    +F("Subscription Rev &pound;/mo","subRev","1")+F("Subscription Cost &pound;/mo","subCost","1")
+    +F("Email Rate &pound;/order","emailRate","0.001")
+    +F("Storage Pallet &pound;/mo","storPalRate")+F("Storage M3/day &pound;","storM3Rate")+'</div>'
+    +'<div class="fdiv">Warehouse Throughput</div><div class="fg">'
+    +F("Booking In units/hr","bookBph","1")+F("Picking units/hr","pickBph","1")
+    +F("Packing orders/hr","packBph","1")+F("Labelling orders/hr","labelBph","1")
+    +F("Returns orders/hr","retBph","1")+'</div>'
+    +'<div class="fdiv">Inbound &amp; Storage Profile</div><div class="fg">'
+    +F("Inbound Pallets/mo","ibPallets","1")+F("Cases/Pallet (IB)","ibCpp","1")+F("Units/Case (IB)","ibUpc","1")
+    +F("Storage Pallets","stPallets","1")+F("Cases/Pallet (ST)","stCpp","1")+F("Units/Case (ST)","stUpc","1")
+    +F("Product Length cm","dimL","0.1")+F("Product Width cm","dimW","0.1")+F("Product Height cm","dimH","0.1")
+    +'</div><div style="height:20px"></div></div>';
+}
+
+// TIER MUTATIONS
+function addTier(){
+  S.tiers.push({band:"New Band",p1:1.00,p2:0.20,t48:2.25,t24:3.70,notes:""});
+  renderTab();
+}
+function delTier(i){
+  if(S.tiers.length<=1){alert("Need at least one tier.");return;}
+  S.tiers.splice(i,1);
+  renderTab();
+}
+
+// BIND ALL DYNAMIC INPUTS
+function bindAll(){
+  // Forecast inline
+  document.querySelectorAll("input[data-fc]").forEach(function(inp){
+    inp.addEventListener("blur",function(){
+      S.forecast[parseInt(inp.dataset.fc)]=parseInt(inp.value)||0;
+      renderTab();
+    });
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")inp.blur();});
+  });
+  // Scenario OPM
+  var sc=document.getElementById("sc-in");
+  if(sc){
+    sc.addEventListener("blur",function(){S.scOpm=parseFloat(sc.value)||S.opm;render();});
+    sc.addEventListener("keydown",function(e){if(e.key==="Enter")sc.blur();});
+  }
+  // Tier inputs
+  document.querySelectorAll("input[data-tier]").forEach(function(inp){
+    inp.addEventListener("blur",function(){
+      var i=parseInt(inp.dataset.tier),f=inp.dataset.tf;
+      if(f==="band"||f==="notes") S.tiers[i][f]=inp.value;
+      else S.tiers[i][f]=parseFloat(inp.value)||0;
+      renderTab();
+    });
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")inp.blur();});
+  });
+  // Shipping inputs
+  document.querySelectorAll("input[data-ship]").forEach(function(inp){
+    inp.addEventListener("blur",function(){
+      var r=inp.dataset.ship,i=parseInt(inp.dataset.idx),f=inp.dataset.field;
+      if(f==="name") S.shipping[r][i][f]=inp.value;
+      else S.shipping[r][i][f]=parseFloat(inp.value)||0;
+      // Update margin badge inline without full re-render
+      var opt=S.shipping[r][i];
+      var mg=opt.rev>0?(opt.rev-opt.cost)/opt.rev:0;
+      var bdgEl=document.getElementById("ship-mg-"+r+"-"+i);
+      if(bdgEl){bdgEl.className="bdg b"+mc(mg);bdgEl.textContent=PCT(mg);}
+      // Refresh P&L if on summary
+      if(TAB==="summary"||TAB==="ratecard") renderTab();
+    });
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")inp.blur();});
+  });
+}
+
+// BOOT
+render();
+</script>
+</body>
+</html>
